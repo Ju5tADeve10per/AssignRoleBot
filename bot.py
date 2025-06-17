@@ -26,7 +26,11 @@ async def join_project(interaction: discord.Interaction, user: discord.Member, p
     async def get_or_create_role(name):
         role = discord.utils.get(guild.roles, name=name)
         if role is None:
+            print(f"🛠 ロール『{name}』が存在しないため作成します")
             role = await guild.create_role(name=name)
+            print(f"✅ 作成されたロール: {role.name}, ID: {role.id}")
+        else:
+            print(f"📌 既存のロール: {role.name}, ID: {role.id}")
         return role
     
     researcher_role = await get_or_create_role("研究員")
@@ -40,16 +44,27 @@ async def join_project(interaction: discord.Interaction, user: discord.Member, p
 @app_commands.describe(user="リーダーにしたいユーザー", project="担当プロジェクト名")
 async def set_leader(interaction: discord.Interaction, user: discord.Member, project: str):
     guild = interaction.guild
+    print(f"🛠 set_leader called with user={user}, project={project}")
+
+    # Create leader role
     leader_role = discord.utils.get(guild.roles, name="研究主任")
     if not leader_role:
+        print("🎩 '研究主任' ロールが存在しないので作成します")
         leader_role = await guild.create_role(name="研究主任")
+    else:
+        print("✅ '研究主任' ロールは既に存在します")
     
+    # Get Project Role
     project_role = discord.utils.get(guild.roles, name=project)
     if not project_role:
+        print(f"⚠ プロジェクト『{project}』ロールが見つかりません")
         await interaction.response.send_message(f"⚠ プロジェクト『{project}』のロールが存在しません。先に `/join_project` を実行してください。", ephemeral=True)
         return
+    else:
+        print(f"✅ プロジェクトロール『{project}』を見つけました")
     
     await user.add_roles(leader_role, project_role)
+    print(f"🏅 {user} に『研究主任』と『{project}』ロールを付与しました")
     await interaction.response.send_message(f"{user.mention} をプロジェクト『{project}』の研究主任に任命しました。", ephemeral=True)
 
 client.run(TOKEN)
